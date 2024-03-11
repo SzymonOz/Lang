@@ -17,8 +17,8 @@
     <item
         android:id="@+id/page_4"
         android:enabled="true"
-        android:icon="@drawable/test"
-        android:title="Dialogi"/>
+        android:icon="@drawable/baseline_tests"
+        android:title="Ćwiczenia i dialogi"/>
 
     <item
         android:id="@+id/page_5"

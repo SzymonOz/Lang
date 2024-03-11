@@ -107,21 +107,26 @@ class MainActivity : AppCompatActivity() {
                     this,
                     Manifest.permission.RECORD_AUDIO
                 ) != PackageManager.PERMISSION_GRANTED
-            ) {
+
+            ){
+                Toast.makeText(this, "Cos.", Toast.LENGTH_LONG).show()
                 // Pass any permission you want while launching
                 requestPermission.launch(Manifest.permission.RECORD_AUDIO)
+
+            } else {
+                val sttIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                sttIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
+                sttIntent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Zacznij mówić")
+                try {
+                    // Start the intent for a result, and pass in our request code.
+                    startActivityForResult(sttIntent, REQUEST_CODE_STT)
+                } catch (e: ActivityNotFoundException) {
+                    // Handling error when the service is not available.
+                    e.printStackTrace()
+                    Toast.makeText(this, "Your device does not support STT.", Toast.LENGTH_LONG).show()
+                }
             }
-            val sttIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            sttIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
-            sttIntent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Zacznij mówić")
-            try {
-                // Start the intent for a result, and pass in our request code.
-                startActivityForResult(sttIntent, REQUEST_CODE_STT)
-            } catch (e: ActivityNotFoundException) {
-                // Handling error when the service is not available.
-                e.printStackTrace()
-                Toast.makeText(this, "Your device does not support STT.", Toast.LENGTH_LONG).show()
-            }
+
             //webView.evaluateJavascript("Test('Andrdoid-->Html')", null);
 
 
@@ -139,6 +144,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.page_3 -> {
                     webView.loadUrl("https://langapp.eu/wyjasnienia.html")
+                    true
+                }
+                R.id.page_4 -> {
+                    webView.loadUrl("https://langapp.eu/other.php?user="+user)
                     true
                 }
                 R.id.page_5 -> {
