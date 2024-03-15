@@ -63,10 +63,16 @@ class MainActivity : AppCompatActivity() {
         webView.settings.domStorageEnabled = true;
         webView.settings.allowFileAccess = true
         webView.loadUrl("https://langapp.eu/profile.php?user="+user)
+        dialog = AlertDialog.Builder(this,R.style.CustomAlertDialog)
+            .create()
+        val view = layoutInflater.inflate(R.layout.progresslayout,null)
+        dialog.setView(view)
+
+        dialog.setCanceledOnTouchOutside(false)
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
-                dialogLoad()
+                dialog.show()
             }
             override fun shouldOverrideUrlLoading(
                 view: WebView?,
@@ -135,22 +141,27 @@ class MainActivity : AppCompatActivity() {
         bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.page_1 -> {
+                    dialog.show()
                     webView.loadUrl("https://langapp.eu/profile.php?user="+user)
                     true
                 }
                 R.id.page_2 -> {
+                    dialog.show()
                     webView.loadUrl("https://langapp.eu/texting.php?user="+user)
                     true
                 }
                 R.id.page_3 -> {
+                    dialog.show()
                     webView.loadUrl("https://langapp.eu/wyjasnienia.html")
                     true
                 }
                 R.id.page_4 -> {
+                    dialog.show()
                     webView.loadUrl("https://langapp.eu/other.php?user="+user)
                     true
                 }
                 R.id.page_5 -> {
+                    dialog.show()
                     webView.loadUrl("https://langapp.eu/library.php?user="+user)
                     true
                 }
@@ -190,16 +201,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun dialogLoad() {
-
-        dialog = AlertDialog.Builder(this,R.style.CustomAlertDialog)
-            .create()
-        val view = layoutInflater.inflate(R.layout.progresslayout,null)
-        dialog.setView(view)
-
-        dialog.setCanceledOnTouchOutside(false)
-        dialog.show()
-    }
     private fun CheckFile(){
         val sharedPreference =  getSharedPreferences("my", MODE_PRIVATE)
         val name = sharedPreference.getString("Name", "none")
