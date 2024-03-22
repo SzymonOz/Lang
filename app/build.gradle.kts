@@ -5,15 +5,15 @@ plugins {
 }
 
 android {
-    namespace = "com.example.lang"
+    namespace = "com.szymo.lang"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.lang"
+        applicationId = "com.szymo.lang"
         minSdk = 28
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.4"
+        versionCode = 3
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

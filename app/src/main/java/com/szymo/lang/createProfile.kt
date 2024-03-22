@@ -1,4 +1,4 @@
-package com.example.lang
+package com.szymo.lang
 
 import android.content.Context
 import android.content.Intent
@@ -9,7 +9,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.math.BigInteger
 import java.security.MessageDigest
-import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class createProfile : AppCompatActivity() {
@@ -30,7 +31,8 @@ class createProfile : AppCompatActivity() {
             }else{
                 btn_click_me.isEnabled = false;
                 val tx = name.getText().toString();
-                val current = LocalDate.now()
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss")
+                val current = LocalDateTime.now().format(formatter)
                 var namehash = md5(tx+current)
                 val data:String = namehash+"::"+tx
                 val sharedPreference =  getSharedPreferences("my",Context.MODE_PRIVATE)

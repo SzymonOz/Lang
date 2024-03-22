@@ -1,4 +1,4 @@
-package com.example.lang
+package com.szymo.lang
 
 import org.junit.Test
 

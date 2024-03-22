@@ -1,4 +1,4 @@
-package com.example.lang
+package com.szymo.lang
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var mic: ImageButton
     lateinit var dialog : AlertDialog
     private var doubleBackToExitPressedOnce = false
+    private var link = 1;
     private val requestPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             // do something
@@ -115,7 +116,6 @@ class MainActivity : AppCompatActivity() {
                 ) != PackageManager.PERMISSION_GRANTED
 
             ){
-                Toast.makeText(this, "Cos.", Toast.LENGTH_LONG).show()
                 // Pass any permission you want while launching
                 requestPermission.launch(Manifest.permission.RECORD_AUDIO)
 
@@ -141,26 +141,31 @@ class MainActivity : AppCompatActivity() {
         bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.page_1 -> {
+                    link = 1
                     dialog.show()
                     webView.loadUrl("https://langapp.eu/profile.php?user="+user)
                     true
                 }
                 R.id.page_2 -> {
+                    link = 2
                     dialog.show()
                     webView.loadUrl("https://langapp.eu/texting.php?user="+user)
                     true
                 }
                 R.id.page_3 -> {
+                    link = 3
                     dialog.show()
                     webView.loadUrl("https://langapp.eu/wyjasnienia.html")
                     true
                 }
                 R.id.page_4 -> {
+                    link = 4
                     dialog.show()
                     webView.loadUrl("https://langapp.eu/other.php?user="+user)
                     true
                 }
                 R.id.page_5 -> {
+                    link = 5
                     dialog.show()
                     webView.loadUrl("https://langapp.eu/library.php?user="+user)
                     true
@@ -262,7 +267,39 @@ class MainActivity : AppCompatActivity() {
         }
 
         this.doubleBackToExitPressedOnce = true
-        Toast.makeText(this, "Wciśnij dwa razy wstecz aby zamknąć", Toast.LENGTH_SHORT).show()
+        val webUrl = webView.getUrl()
+        when (link) {
+            1 -> Toast.makeText(this,"Wśnij wstecz szybko dwa razy aby zamknąć",Toast.LENGTH_LONG).show();
+            2 -> {
+                if(webUrl == "https://langapp.eu/texting.php?user="+user){
+                    bottomNav.setSelectedItemId(R.id.page_1)
+                }else{
+                    bottomNav.setSelectedItemId(R.id.page_2)
+                }
+            }
+            3 -> {
+                if(webUrl == "https://langapp.eu/wyjasnienia.html"){
+                    bottomNav.setSelectedItemId(R.id.page_1)
+                }else{
+                    bottomNav.setSelectedItemId(R.id.page_3)
+                }
+            }
+            4 -> {
+                if(webUrl == "https://langapp.eu/other.php?user="+user){
+                    bottomNav.setSelectedItemId(R.id.page_1)
+                }else{
+                    bottomNav.setSelectedItemId(R.id.page_4)
+                }
+            }
+            5 -> {
+                if(webUrl == "https://langapp.eu/library.php?user="+user){
+                    bottomNav.setSelectedItemId(R.id.page_1)
+                }else{
+                    bottomNav.setSelectedItemId(R.id.page_5)
+                }
+            }
+        }
+
 
         Handler(Looper.getMainLooper()).postDelayed(Runnable { doubleBackToExitPressedOnce = false }, 2000)
     }
