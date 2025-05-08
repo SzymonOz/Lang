@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/page_1"
+        android:enabled="true"
+        android:icon="@drawable/profile"
+        android:title="Profil"/>
+    <item
+        android:id="@+id/page_2"
+        android:enabled="true"
+        android:icon="@drawable/tests"
+        android:title="Zadania"/>
+    <item
+        android:id="@+id/page_3"
+        android:enabled="true"
+        android:icon="@drawable/book"
+        android:title="Wyjaśnienia"/>
+    <item
+        android:id="@+id/page_4"
+        android:enabled="true"
+        android:icon="@drawable/dialogs"
+        android:title="Dialogi"/>
+
+    <item
+        android:id="@+id/page_5"
+        android:enabled="true"
+        android:icon="@drawable/library"
+        android:title="Biblioteka"/>
+</menu>

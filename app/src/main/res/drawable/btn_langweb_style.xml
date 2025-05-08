@@ -1,0 +1,14 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="#3498db" /> <!-- Ciemniejszy odcień po kliknięciu -->
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="#34495e" /> <!-- Podstawowy kolor (Google Blue) -->
+        </shape>
+    </item>
+</selector>
