@@ -9,7 +9,7 @@ Wszystkie zdania maają wygenerowane pliki audio do odsłuchu.
 
 Aplikacja z założenia miała być prosta i pomagać w nauce.
 
-Możesz pobrać ta aplikację tu: [(https://github.com/SzymonOz/Lang/files/14733804/lang.apk.zip)](https://play.google.com/store/apps/details?id=com.szymo.lang&hl=pl)]
+Możesz pobrać ta aplikację tu: (https://play.google.com/store/apps/details?id=com.szymo.lang&hl=pl)
 
 Aplikacja jest poprostu przeglądarką www dla której została przygotowana strona www i ułatwia z niej korzystanie.
 Licencja GPL
