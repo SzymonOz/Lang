@@ -8,21 +8,21 @@
         android:id="@+id/page_2"
         android:enabled="true"
         android:icon="@drawable/tests"
-        android:title="Zadania"/>
+        android:title="Zdania"/>
     <item
         android:id="@+id/page_3"
         android:enabled="true"
-        android:icon="@drawable/book"
-        android:title="Wyjaśnienia"/>
+        android:icon="@drawable/dialogs"
+        android:title="Słówka, dialogi"/>
     <item
         android:id="@+id/page_4"
         android:enabled="true"
-        android:icon="@drawable/dialogs"
-        android:title="Dialogi"/>
+        android:icon="@drawable/library"
+        android:title="Przeglądarka"/>
 
     <item
         android:id="@+id/page_5"
         android:enabled="true"
-        android:icon="@drawable/library"
-        android:title="Biblioteka"/>
+        android:icon="@drawable/book"
+        android:title="Nauka"/>
 </menu>

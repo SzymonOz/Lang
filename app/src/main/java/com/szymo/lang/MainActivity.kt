@@ -4,9 +4,11 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -72,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageFinished(view: WebView, url: String) {
-                mic.visibility = if (url.contains("speech.php")) View.VISIBLE else View.GONE
+                mic.visibility = if (url.contains("mowienie.php")) View.VISIBLE else View.GONE
                 dialog.dismiss()
             }
 
@@ -125,27 +127,27 @@ class MainActivity : AppCompatActivity() {
             when (it.itemId) {
                 R.id.page_1 -> {
                     link = 1
-                    webView.loadUrl("https://langapp.edu.pl/android/profile.php?user=$user")
+                    webView.loadUrl("https://langapp.edu.pl/android/profil.php?user=$user")
                     true
                 }
                 R.id.page_2 -> {
                     link = 2
-                    webView.loadUrl("https://langapp.edu.pl/android/texting.php?user=$user")
+                    webView.loadUrl("https://langapp.edu.pl/android/zdania.php?user=$user")
                     true
                 }
                 R.id.page_3 -> {
                     link = 3
-                    webView.loadUrl("https://langapp.edu.pl/android/wyjasnienia.html")
+                    webView.loadUrl("https://langapp.edu.pl/android/slowka.php?user=$user")
                     true
                 }
                 R.id.page_4 -> {
                     link = 4
-                    webView.loadUrl("https://langapp.edu.pl/android/other.php?user=$user")
+                    webView.loadUrl("https://langapp.edu.pl/android/biblioteka.php?user=$user")
                     true
                 }
                 R.id.page_5 -> {
                     link = 5
-                    webView.loadUrl("https://langapp.edu.pl/android/library.php?user=$user")
+                    webView.loadUrl("https://langapp.edu.pl/android/wyjasnienia.html")
                     true
                 }
                 else -> false
@@ -183,7 +185,36 @@ class MainActivity : AppCompatActivity() {
                 val ver: String = response.getString("ver")
                 val myVer: String = packageManager.getPackageInfo(packageName, 0).versionName
                 if (ver != myVer) {
-                    Toast.makeText(this, "Dostępna jest nowa wersja, zajrzyj na https://dm71975.domenomania.eu/langapp/", Toast.LENGTH_LONG).show()
+                    // Tworzymy dialog z pytaniem
+                    AlertDialog.Builder(this)
+                        .setTitle("Aktualizacja dostępna")
+                        .setMessage("Dostępna jest nowa wersja aplikacji. Czy chcesz przejść do Sklepu Play, aby zaktualizować?")
+                        .setPositiveButton("Tak") { dialog, _ ->
+                            // Otwórz Sklep Play
+                            val appPackageName = packageName // lub bezpiecznie podać konkretny package name
+                            try {
+                                startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("market://details?id=$appPackageName")
+                                    )
+                                )
+                            } catch (e: ActivityNotFoundException) {
+                                // Gdy Sklep Play nie jest zainstalowany, otwórz link w przeglądarce
+                                startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")
+                                    )
+                                )
+                            }
+                            dialog.dismiss()
+                        }
+                        .setNegativeButton("Nie") { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .setCancelable(false)
+                        .show()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
