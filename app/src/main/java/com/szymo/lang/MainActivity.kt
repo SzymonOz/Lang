@@ -7,19 +7,27 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
 import android.graphics.Bitmap
+import android.graphics.drawable.Icon
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.View
 import android.webkit.*
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.android.volley.Request
@@ -34,12 +42,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var mic: ImageButton
     private lateinit var dialog: AlertDialog
-    private lateinit var speechLauncher: ActivityResultLauncher<Intent>
     private lateinit var requestPermission: ActivityResultLauncher<String>
+    private lateinit var textSpeech: TextView
 
     private var doubleBackToExitPressedOnce = false
     private var link = 1
     private var user = ""
+    private var update_status = false;
+
+    private lateinit var speechRecognizer: SpeechRecognizer
+    private lateinit var speechIntent: Intent
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,9 +59,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         mic = findViewById(R.id.mic)
+        textSpeech = findViewById(R.id.textSpeech)
         mic.visibility = View.INVISIBLE
+        textSpeech.visibility = View.INVISIBLE
         CheckFile()
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            createDynamicShortcut()
+        }
         webView = findViewById(R.id.webview)
         webView.settings.apply {
             javaScriptEnabled = true
@@ -75,6 +91,8 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView, url: String) {
                 mic.visibility = if (url.contains("mowienie.php")) View.VISIBLE else View.GONE
+                textSpeech.visibility = if (url.contains("mowienie.php")) View.VISIBLE else View.GONE
+                textSpeech.text = "Kliknij na ikonkę mikrofonu aby rozpocząć rozpoznawanie mowy";
                 dialog.dismiss()
             }
 
@@ -85,28 +103,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        webView.loadUrl("https://langapp.edu.pl/android/profile.php?user=$user")
+        webView.loadUrl("https://langapp.edu.pl/android/profil.php?user=$user")
 
-        // Rozpoznawanie mowy – nowy launcher
-        speechLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val data = result.data
-                val matches = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                val recognizedText = matches?.get(0)?.replace("'", "\\'") ?: ""
-                if (recognizedText.isNotEmpty()) {
-                    webView.evaluateJavascript("check(\"$recognizedText\")") { returnValue ->
-                        if (returnValue == "1") {
-                            mic.visibility = View.GONE
-                        }
-                    }
-                }
-            } else {
-                Toast.makeText(this, "Nie rozpoznano mowy. Spróbuj ponownie.", Toast.LENGTH_SHORT).show()
-            }
-        }
 
         requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
+                initializeSpeechRecognizer()
                 launchSpeechRecognition()
             } else {
                 Toast.makeText(this, "Potrzebne uprawnienie do mikrofonu.", Toast.LENGTH_SHORT).show()
@@ -117,6 +119,7 @@ class MainActivity : AppCompatActivity() {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 requestPermission.launch(Manifest.permission.RECORD_AUDIO)
             } else {
+                initializeSpeechRecognizer()
                 launchSpeechRecognition()
             }
         }
@@ -153,17 +156,92 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+        if (intent.getBooleanExtra("from_shortcut", false)) {
+            bottomNav.selectedItemId = R.id.page_2
+            webView.loadUrl("https://langapp.edu.pl/android/losowe_zadanie.php?user=$user")
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.N_MR1)
+    private fun createDynamicShortcut() {
+        val shortcutManager = getSystemService(ShortcutManager::class.java)
+
+        val shortcutIntent = Intent(this, MainActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            putExtra("from_shortcut", true)
+        }
+
+        val shortcut = ShortcutInfo.Builder(this, "shortcut_slowka")
+            .setShortLabel("Losowe zadanie")
+            .setLongLabel("Wykonaj losowe zadanie")
+            .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher)) // lub inna ikonka
+            .setIntent(shortcutIntent)
+            .build()
+
+        shortcutManager.dynamicShortcuts = listOf(shortcut)
+    }
+    private fun initializeSpeechRecognizer() {
+        if (!::speechRecognizer.isInitialized) {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+            speechRecognizer.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+                    textSpeech.text = "Słucham..."
+                    textSpeech.visibility = View.VISIBLE
+                }
+
+                override fun onBeginningOfSpeech() {
+                    textSpeech.text = "Mów teraz..."
+                    textSpeech.visibility = View.VISIBLE
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) {
+                    val partial = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    textSpeech.text = partial?.get(0) ?: ""
+                    textSpeech.visibility = View.VISIBLE
+                }
+
+                override fun onResults(results: Bundle?) {
+                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val recognizedText = matches?.get(0)?.replace("'", "\\'") ?: ""
+                    textSpeech.text = "Rozpoznałem : ${matches?.get(0) ?: ""}"
+                    textSpeech.visibility = View.VISIBLE
+
+                    if (recognizedText.isNotEmpty()) {
+                        webView.evaluateJavascript("check(\"$recognizedText\")") { returnValue ->
+                            if (returnValue == "1") {
+                                mic.visibility = View.GONE
+                                textSpeech.visibility = View.GONE
+                            }
+                        }
+                    }
+                }
+
+                override fun onEndOfSpeech() {
+                    textSpeech.text = "Przetwarzam..."
+                    textSpeech.visibility = View.VISIBLE
+                }
+
+                override fun onError(error: Int) {
+                    textSpeech.text = "Błąd rozpoznawania"
+                    Toast.makeText(applicationContext, "Błąd rozpoznawania mowy", Toast.LENGTH_SHORT).show()
+                }
+
+                // Pozostałe override – mogą pozostać puste:
+                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onBufferReceived(buffer: ByteArray?) {}
+                override fun onEvent(eventType: Int, params: Bundle?) {}
+            })
+
+        }
     }
 
     private fun launchSpeechRecognition() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        speechIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Zacznij mówić")
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
         }
-        speechLauncher.launch(intent)
+        speechRecognizer.startListening(speechIntent)
     }
 
     private fun CheckFile() {
@@ -185,13 +263,11 @@ class MainActivity : AppCompatActivity() {
                 val ver: String = response.getString("ver")
                 val myVer: String = packageManager.getPackageInfo(packageName, 0).versionName
                 if (ver != myVer) {
-                    // Tworzymy dialog z pytaniem
                     AlertDialog.Builder(this)
                         .setTitle("Aktualizacja dostępna")
                         .setMessage("Dostępna jest nowa wersja aplikacji. Czy chcesz przejść do Sklepu Play, aby zaktualizować?")
                         .setPositiveButton("Tak") { dialog, _ ->
-                            // Otwórz Sklep Play
-                            val appPackageName = packageName // lub bezpiecznie podać konkretny package name
+                            val appPackageName = packageName
                             try {
                                 startActivity(
                                     Intent(
@@ -200,7 +276,6 @@ class MainActivity : AppCompatActivity() {
                                     )
                                 )
                             } catch (e: ActivityNotFoundException) {
-                                // Gdy Sklep Play nie jest zainstalowany, otwórz link w przeglądarce
                                 startActivity(
                                     Intent(
                                         Intent.ACTION_VIEW,
@@ -229,25 +304,23 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         CheckFile()
-        checkUpdate()
-    }
-
-    override fun onBackPressed() {
-        if (doubleBackToExitPressedOnce) {
-            super.onBackPressed()
-            return
+        if (intent.getBooleanExtra("from_shortcut", false)) {
+            bottomNav.selectedItemId = R.id.page_2
+            webView.loadUrl("https://langapp.edu.pl/android/losowe_zadanie.php?user=$user")
+        }
+        if (!update_status) {
+            update_status = true
+            checkUpdate()
         }
 
-        this.doubleBackToExitPressedOnce = true
-        val webUrl = webView.url
-        when (link) {
-            1 -> Toast.makeText(this, "Wciśnij wstecz szybko dwa razy aby zamknąć", Toast.LENGTH_LONG).show()
-            2 -> if (webUrl == "https://langapp.edu.pl/android/texting.php?user=$user") bottomNav.selectedItemId = R.id.page_1 else bottomNav.selectedItemId = R.id.page_2
-            3 -> if (webUrl == "https://langapp.edu.pl/android/wyjasnienia.html") bottomNav.selectedItemId = R.id.page_1 else bottomNav.selectedItemId = R.id.page_3
-            4 -> if (webUrl == "https://langapp.edu.pl/android/other.php?user=$user") bottomNav.selectedItemId = R.id.page_1 else bottomNav.selectedItemId = R.id.page_4
-            5 -> if (webUrl == "https://langapp.edu.pl/android/library.php?user=$user") bottomNav.selectedItemId = R.id.page_1 else bottomNav.selectedItemId = R.id.page_5
-        }
-
-        Handler(Looper.getMainLooper()).postDelayed({ doubleBackToExitPressedOnce = false }, 2000)
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::speechRecognizer.isInitialized) {
+            speechRecognizer.destroy()
+        }
+    }
+
+
 }

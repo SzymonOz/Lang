@@ -21,7 +21,23 @@
 
     </WebView>
 
-
+    <TextView
+        android:id="@+id/textSpeech"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mic"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/btn_langweb_style"
+        android:padding="10dp"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/mic"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="invisible" />
     <ImageButton
         android:id="@+id/mic"
         android:layout_width="wrap_content"
